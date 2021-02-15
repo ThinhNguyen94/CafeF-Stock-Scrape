@@ -1,0 +1,77 @@
+{% extends "scrape/base.html" %}
+
+{% block title %}Statistical Summary{% endblock title %}
+
+{% block javascript %}
+
+<script type="text/javascript">
+    function returnHome(){
+    	document.getElementById("Home-Button").onclick = function () {
+        location.href = "www.yoursite.com";
+    };
+</script>
+	
+{% endblock javascript %}
+
+{% block content %}
+<div id="stat-display" style="margin-top: 10rem;">
+	{% if submitbutton == "Submit" %}
+	<div id="price-stats">
+		<h5>Stock Price Statistics</h5>
+		<table class="table table-success table-striped">
+			<thead>
+				<tr>
+					<th scope="col">Mean</th>
+					<th scope="col">Standard Deviation</th>
+					<th scope="col">Skewness</th>
+					<th scope="col">Kurtosis</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>{{stat_output.meanPrice}}</td>
+					<td>{{stat_output.stdPrice}}</td>
+					<td>{{stat_output.skewPrice}}</td>
+					<td>{{stat_output.kurtPrice}}</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<div id="log-return-stats" style="margin-top: 4rem;">
+		<h5>Log Returns Statistics</h5>
+		<table class="table table-success table-striped">
+			<thead>
+				<tr>
+					<th scope="col">Mean</th>
+					<th scope="col">Standard Deviation</th>
+					<th scope="col">Skewness</th>
+					<th scope="col">Kurtosis</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>{{stat_output.meanLR}}</td>
+					<td>{{stat_output.stdLR}}</td>
+					<td>{{stat_output.skewLR}}</td>
+					<td>{{stat_output.kurtLR}}</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<div id="tsa-stats">
+		
+	</div>
+	{% else %}
+	<p class="display-4" style="margin-top: 8rem; text-align: center;">
+		<span>There is no data to show.</span>
+		<span style="display: block;">Please return to home page and search for stock</span>
+	</p>
+	<button id="Home-Button" class="lead" style="margin:0 auto; display:block;">Return Home</button>
+	<script type="text/javascript">
+	    document.getElementById("Home-Button").onclick = function () {
+	        location.href = "{% url 'home' %}";
+	    };
+	</script>
+	{% endif %}
+</div>
+{% endblock content %}

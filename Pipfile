@@ -1,0 +1,18 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+django = "==3.0.1"
+pandas = "*"
+bs4 = "*"
+selenium = "*"
+lxml = "*"
+numpy = "*"
+scipy = "*"
+
+[requires]
+python_version = "3.8"

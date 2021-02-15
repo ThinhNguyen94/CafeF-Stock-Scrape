@@ -1,0 +1,150 @@
+{% extends "scrape/base.html" %}
+
+{% block title %}Home{% endblock title %}
+
+{% block javascript %}
+	<script type="text/javascript">
+
+		function reply_click() {
+		    alert(event.srcElement.id);
+		}
+
+		function data_view(clicked_id) {
+			var value = parseInt(clicked_id);
+			var context = JSON.parse("{{context|escapejs}}");
+			var numPage = context.numPageView;  // this is also the value of last page button
+			
+			// Identify the index range to view from data
+			if (numPage === value) {
+				index1 = 20*(value-1)
+				index2 = context.nrows-1
+			} else {
+				index1 = 20*(value-1);
+				index2 = index1+19;
+			}
+
+			var element = document.getElementById("stock_screen");
+
+			// Put data into html and view
+			for (var i = index1; i <= index2; i++) {
+				var newRow = document.createElement("tr")
+				for (let name of Object.keys(context.data)){
+					var newEntry = document.createElement("td")
+					Entry = String(context.data[name][i])
+					var newValue = document.createTextNode(Entry)
+					newEntry.appendChild(newValue)
+					newRow.appendChild(newEntry)
+				}
+				element.appendChild(newRow);
+			}
+
+			var element1 = document.getElementById("button_bar");
+			if (value%20==0) {
+				btn_from = value+1;
+				btn_to = btn_from+19;
+				if (btn_to <= numPage) {
+					for (var j = btn_from; j<=btn_to; j++){
+						var newDataTag = document.createElement("td");
+						var newData = document.createTextNode(String(j));
+						newDataTag.setAttribute("id",String(j));
+						newDataTag.setAttribute("onclick","data_view(this.id)");
+						newDataTag.appendChild(newData);
+						element1.appendChild(newDataTag);
+					}
+				} else {
+					for (var j = btn_from; j<=numPage; j++) {
+						var newDataTag = document.createElement("td");
+						var newData = document.createTextNode(String(j));
+						newDataTag.setAttribute("id",String(j));
+						newDataTag.setAttribute("onclick","data_view(this.id)");
+						newDataTag.appendChild(newData);
+						element1.appendChild(newDataTag);
+					}
+				}
+			}
+		}
+	</script>
+{% endblock javascript %}
+
+{% block content %}
+<div id="input">
+	<form method="GET" action="{% url 'scrape' %}">
+		{% csrf_token %}
+		<label for="stock_quote">Stock Quote:</label>
+		<input type="text" id="stock_quote" name="quote" 
+		value='{% if context.submitbutton == "Submit" %}{{ quote }}{% endif %}'>
+		
+		<label for="start_date">Start Date:</label>
+		<input type="text" id="start_date" name="date_from" 
+		value='{% if context.submitbutton == "Submit" %}{{ sdate }}{% endif %}'>
+
+		<label for="end_date">End Date:</label>
+		<input type="text" id="end_date" name="date_to" 
+		value='{% if context.submitbutton == "Submit" %}{{ edate }}{% endif %}'>
+
+		<input type="submit" name="Scrape" value="Scrape">
+	</form>
+</div>
+
+<div id="view-display">
+	{% if submitbutton == "Submit" %}
+	<table>
+		<thead style="border-bottom: solid 1px #e6e6e6; font-family: Arial; font-size: 10px;
+                font-weight: bold; color: #004276; background-color: #FFF">
+			<tr>
+				{% for header in keys %}
+					<th>{{header}}</th>
+				{% endfor %}
+			</tr>
+		</thead>
+		<tbody id="stock_screen">
+			{% if numPageView == 1 %}
+				{% for i in nrows|get_range:0 %}
+					<tr>
+						{% for name in keys %}
+							<td>{{ data|get_element_by_index:name|get_element_by_index:i }}</td>
+						{% endfor %}
+					</tr>
+				{% endfor %}
+			{% else %}
+				{% for i in 20|get_range:0 %}
+					<tr>
+						{% for name in keys %}
+							<td>{{ data|get_element_by_index:name|get_element_by_index:i }}</td>
+						{% endfor %}
+					</tr>
+				{% endfor %}
+			{% endif %}
+		</tbody>
+	</table>
+	{% else %}
+	<p>
+		SEARCH FOR STOCK AND SCRAPE IT !!!!
+	</p>
+	{% endif %}
+</div>
+
+<div id="btn-display">
+	{% if submitbutton == "Submit" %}
+	<table>
+		<tbody>
+			<tr id="button_bar">
+				{% if numPageView <= 20 %}
+					{% for i in numPageView_1|get_range:1 %}
+						<td>
+							<a id="{{ i }}" href="javascript:data_view(this.id);">{{ i }}</a>
+						</td>
+					{% endfor %}
+				{% else %}
+					{% for i in 21|get_range:1 %}
+						<td>
+							<a id="{{ i }}" href="javascript:data_view(this.id);">{{ i }}</a>
+						</td>
+					{% endfor %}
+				{% endif %}
+			</tr>
+		</tbody>
+	</table>
+	{% endif %}
+</div>
+{% endblock content %}

@@ -1,0 +1,234 @@
+{% extends "scrape/base.html" %}
+
+{% block title %}Home{% endblock title %}
+
+{% block javascript %}
+<script type="text/javascript">
+	function validateForm() {
+		var quote = document.forms["Form"]["quote"].value;
+		var sdate = document.forms["Form"]["date_from"].value;
+		var edate = document.forms["Form"]["date_to"].value;
+		if ((quote == null || quote == "") || (sdate == null || sdate == "") || (edate == null || edate == "")) {
+			alert("Please fill in all the information")
+			return false;
+		}
+	}
+
+	function validateEmpty() {
+		var quote = document.forms["Form"]["quote"].value;
+		var sdate = document.forms["Form"]["date_from"].value;
+		var edate = document.forms["Form"]["date_to"].value;
+
+		// Validate the first entry
+		if (quote == null || quote== "") {
+			document.getElementById("empty-quote").innerHTML = "Please insert stock quote";
+		} else {
+			document.getElementById("empty-quote").innerHTML = "";
+		}
+
+		// Validate the second entry
+		if (sdate == null || sdate == "") {
+			document.getElementById("empty-sdate").innerHTML = "Please insert start date";
+		} else {
+			document.getElementById("empty-sdate").innerHTML = "";
+		}
+
+		if (edate == null || edate == "") {
+			document.getElementById("empty-edate").innerHTML = "Please insert end date";
+		} else {
+			document.getElementById("empty-edate").innerHTML = "";
+		}
+
+		if ((quote == null || quote == "") || (sdate == null || sdate == "") || (edate == null || edate == "")) {
+			return false;
+		} 
+	}
+
+	function validateDate() {
+
+	}
+
+	function convertToCSV(objData, nrows) {
+		var data = typeof objData != 'object' ? JSON.parse(objData) : objData;
+		var str = '';
+		var headers = Object.keys(data);
+		//console.log(data);   // check for values in data
+		//console.log(headers);   // check for values in headers
+		//console.log(typeof headers);
+		//console.log(data["Giá đóng cửa"][1])
+		//console.log(data[headers[1]][1])
+
+		for (var i = 0; i < headers.length; i++) {
+			if (str != '') {str += ',';}
+			str += headers[i];
+		}
+
+		//console.log(str);   // check for value of str
+
+		str += '\r\n';
+
+		//console.log(str);   // check for value of str
+
+		for (var i = 0; i < nrows; i++) {
+			var line = '';
+			for (let head of headers) {
+				//console.log(head);
+				if (line != '') {
+					line += ',';
+				}
+				line += String(data[head][i]).replace(/,/g, '');
+
+				//console.log(line);  // check for value of line
+			}
+
+			str += line + '\r\n';
+			//console.log(str);   // check for value of str
+		}
+
+		//console.log(str);   // check for value of str
+
+		return str;
+	}
+
+	function exportCSVFile() {
+		var dataJSON = JSON.parse("{{dataJSON|escapejs}}");
+		var quote = dataJSON['quote'];
+		var nrows = dataJSON['nrows'];
+		var sdate = dataJSON['sdate'];
+		var edate = dataJSON['edate'];
+		var data = dataJSON['data'];
+
+		// print type of data above to check
+		//console.log(typeof nrows);   
+		//console.log(typeof sdate);
+		//console.log(typeof edate);
+		//console.log(typeof data);
+		/*
+		var dataNode = document.getElementById('jsondata');
+		for (var x in data) {
+			dataNode.innerHTML+=x+':'+data[x]+'<br><br>';
+		} 
+		dataNode.innerHTML+=nrows;
+		*/
+		
+		// Convert object data to csv
+		var csv = this.convertToCSV(data, nrows);
+		//console.log(csv)   
+		//var dataNode = document.getElementById('jsondata');
+		//dataNode.innerHTML+=csv;
+
+		sdate = sdate.replace(/,/g, '');
+		edate = edate.replace(/,/g, '');
+		var filename = quote+'_'+sdate+'_'+edate+'.csv';
+		//console.log(filename);
+
+		//let csvContent = "data:text/csv;charset=utf-8,";
+		//csvContent+=csv;
+
+		/*
+		var encodeUri = encodeURI(csvContent);
+		var link = document.createElement("a");
+		link.setAttribute("href", encodeUri);
+		link.setAttribute("download", filename);    
+		link.style.visibility = 'hidden';
+		document.body.appendChild(link);
+		link.click();  // This will download the data csv file
+		document.body.removeChild(link);
+		*/
+
+		/*
+		var blob = new Blob([csv], { type: 'text/csv;charset=utf-8,' });
+		var link = document.createElement("a");
+        if (link.download !== undefined) { // feature detection
+            // Browsers that support HTML5 download attribute
+            var url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        */
+
+        //var BOM = "\uFEFF";
+        var blob = new Blob([csv], { type: 'data:text/csv;charset=utf-8,' });
+	    if (navigator.msSaveBlob) { // IE 10+
+	        navigator.msSaveBlob(blob, filename);
+	    } else {
+	        var link = document.createElement("a");
+	        if (link.download !== undefined) { // feature detection
+	            // Browsers that support HTML5 download attribute
+	            var url = URL.createObjectURL(blob);
+	            link.setAttribute("href", url);
+	            link.setAttribute("download", filename);
+	            link.style.visibility = 'hidden';
+	            document.body.appendChild(link);
+	            link.click();
+	            document.body.removeChild(link);
+	        }
+	    }
+	    
+	   
+	}
+
+	function downloadCSV() {
+
+	}
+</script>
+{% endblock javascript %}
+
+{% block content %}
+<div id="input">
+	<form method="GET" name="Form" onsubmit="return validateForm()" action="{% url 'scrape' %}">
+		{% csrf_token %}
+		<label for="stock_quote">Stock Quote:</label>
+		<input type="text" id="stock_quote" name="quote" 
+		value='{% if context.submitbutton == "Submit" %}{{ quote }}{% endif %}' placeholder="e.g. VNINDEX">
+		<label id="empty-quote" style="color: red; position: absolute; display: block;"></label>
+		
+		<label for="start_date" style="margin-left: 1.5rem;">Start Date:</label>
+		<input type="text" id="start_date" name="date_from" 
+		value='{% if context.submitbutton == "Submit" %}{{ sdate }}{% endif %}' placeholder="dd/mm/yyyy">
+		<label id="empty-sdate" style="color: red; position: absolute; display: block;"></label>
+
+		<label for="end_date" style="margin-left: 1.5rem">End Date:</label>
+		<input type="text" id="end_date" name="date_to" 
+		value='{% if context.submitbutton == "Submit" %}{{ edate }}{% endif %}' placeholder="dd/mm/yyyy">
+		<label id="empty-edate" style="color: red; position: absolute; display: block;"></label>
+
+		<input type="submit" name="Scrape" value="Scrape">
+	</form>
+</div>
+
+<div id="home-display" style="margin-top: 3rem;">
+	{% if submitbutton == "Submit" %}
+	<h5>{{ quote }}</h5>
+	<p>{{sdate}} - {{edate}}</p>
+	<table class="table" style=" display:block; height: 65vh; overflow-y: scroll;">
+		<thead class="thead-light">
+			<tr>
+				{% for header in keys %}
+					<th scope="col">{{header}}</th>
+				{% endfor %}
+			</tr>
+		</thead>
+		<tbody id="stock_screen">
+			{% for i in nrows|get_range:0 %}
+				<tr>
+					{% for name in keys %}
+						<td>{{ data|get_element_by_index:name|get_element_by_index:i }}</td>
+					{% endfor %}
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	<button onclick="exportCSVFile()">Get CSV</button>
+	<p id='jsondata' style="font-size: 15px"></p> 
+	{% else %}
+	<p class="display-4" style="margin-top: 8rem; text-align: center;">
+		SEARCH FOR STOCK AND SCRAPE IT !!!!
+	</p>
+	{% endif %}
+</div>
+{% endblock content %} 
