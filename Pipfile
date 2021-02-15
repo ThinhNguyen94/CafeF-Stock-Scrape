@@ -13,6 +13,7 @@ selenium = "*"
 lxml = "*"
 numpy = "*"
 scipy = "*"
+gunicorn = "==19.0.0"
 
 [requires]
 python_version = "3.8"

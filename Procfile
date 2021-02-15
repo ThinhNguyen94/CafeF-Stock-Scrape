@@ -1,0 +1,1 @@
+web: gunicorn stock_scrapper.wsgi --log-file -
