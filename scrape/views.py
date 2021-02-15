@@ -16,15 +16,12 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 import datetime
 import math
+import os
 
 # Libraries for data wrangling and statistics 
 import pandas as pd
 import numpy as np 
 from scipy.stats import skew,kurtosis
-
-# Path variablesRunning ChromeDriver with Python Selenium on Heroku
-GOOGLE_CHROME_PATH = '/app/.apt/usr/bin/google_chrome'
-CHROMEDRIVER_PATH = '/app/.chromedriver/bin/chromedriver'
 
 ####---------------------------------------------------------VIEWS---------------------------------------------------
 
@@ -39,7 +36,8 @@ def get_element_by_index(value, arg):
 # Return stock info view on the home page
 
 def HomePage(request):
-    return render(request, 'scrape/home.html')
+    content = info_current.get_content()
+    return render(request, 'scrape/home.html', content)
 
 # Class to store current data
 class dataOnLoad:
@@ -74,6 +72,8 @@ def ScrapeInfo(request):
     quote_tmp = info_current.get_quote()
     sdate_tmp = info_current.get_sdate()
     edate_tmp = info_current.get_edate()
+
+    # Scrape for stock
     if request.method == 'GET':
         quote = request.GET.get('quote')
         sdate = request.GET.get('date_from')
@@ -87,14 +87,24 @@ def ScrapeInfo(request):
         
         submitbutton = request.GET.get('Scrape')
         data = CafefStockScrape(quote.upper(), sdate, edate)
+
+        # For running in the local machine
         options = webdriver.ChromeOptions()
         options.add_argument('headless')
+        PATH = 'C:\chromedriver.exe'
+        driver = webdriver.Chrome(PATH, options=options)
+
+        '''
+        # For running in heroku for deployment
+        options = webdriver.ChromeOptions()
+        options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+        options.add_argument('--headless')
+        options.add_argument('--disable-dev-sh-usage')
         options.add_argument('--disable-gpu')
         options.add_argument('--no-sandbox')
-        options.binary_location = GOOGLE_CHROME_PATH
-        #PATH = 'C:\chromedriver.exe'
-        #driver = webdriver.Chrome(PATH, options=options)
-        driver = webdriver.Chrome(execution_path=CHROMEDRIVER_PATH, chrome_options=options)
+        driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=options)
+        '''
+        
         data.scrape_stock(driver)
         nrows = data.get_nrows()
         numPageView = math.ceil(nrows/20)
