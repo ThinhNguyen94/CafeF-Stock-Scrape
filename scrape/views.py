@@ -22,6 +22,10 @@ import pandas as pd
 import numpy as np 
 from scipy.stats import skew,kurtosis
 
+# Path variablesRunning ChromeDriver with Python Selenium on Heroku
+GOOGLE_CHROME_PATH = '/app/.apt/usr/bin/google_chrome'
+CHROMEDRIVER_PATH = '/app/.chromedriver/bin/chromedriver'
+
 ####---------------------------------------------------------VIEWS---------------------------------------------------
 
 @register.filter
@@ -85,8 +89,12 @@ def ScrapeInfo(request):
         data = CafefStockScrape(quote.upper(), sdate, edate)
         options = webdriver.ChromeOptions()
         options.add_argument('headless')
-        PATH = 'C:\chromedriver.exe'
-        driver = webdriver.Chrome(PATH, options=options)
+        options.add_argument('--disable-gpu')
+        options.add_argument('--no-sandbox')
+        options.binary_location = GOOGLE_CHROME_PATH
+        #PATH = 'C:\chromedriver.exe'
+        #driver = webdriver.Chrome(PATH, options=options)
+        driver = webdriver.Chrome(execution_path=CHROMEDRIVER_PATH, chrome_options=options)
         data.scrape_stock(driver)
         nrows = data.get_nrows()
         numPageView = math.ceil(nrows/20)
