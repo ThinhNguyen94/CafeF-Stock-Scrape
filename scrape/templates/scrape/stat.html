@@ -2,17 +2,6 @@
 
 {% block title %}Statistical Summary{% endblock title %}
 
-{% block javascript %}
-
-<script type="text/javascript">
-    function returnHome(){
-    	document.getElementById("Home-Button").onclick = function () {
-        location.href = "www.yoursite.com";
-    };
-</script>
-	
-{% endblock javascript %}
-
 {% block content %}
 <div id="stat-display" style="margin-top: 10rem;">
 	{% if submitbutton == "Submit" %}
@@ -57,9 +46,6 @@
 				</tr>
 			</tbody>
 		</table>
-	</div>
-	<div id="tsa-stats">
-		
 	</div>
 	{% else %}
 	<p class="display-4" style="margin-top: 8rem; text-align: center;">
